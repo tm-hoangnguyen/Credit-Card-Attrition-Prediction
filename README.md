@@ -20,7 +20,7 @@ Pytorch, Pandas, Numpy, Matplotlib, Seaborn, Sklearn
 
 The dataset has an imbalanced attrition rate, with existing customers accounting for approximately 84% of the data. This imbalance should be considered when training the model. <p>
 ![image](https://github.com/user-attachments/assets/171002df-8236-4e53-8747-29f9efb320e1) <p>
-Attrited customers tend to have lower total transaction counts compared to existing customers. The median transaction count for attrited customers is lower, and their overall range of transaction counts is narrower compared to existing customers, indicating that lower engagement may be a strong predictor of attrition. <p>
+Attrited customers tend to have lower total transaction counts compared to existing customers. The median transaction count for attrited customers is lower (41 vs 72), and their overall range of transaction counts is narrower compared to existing customers, indicating that lower engagement may be a strong predictor of attrition. <p>
 
 ![image](https://github.com/user-attachments/assets/25f6d710-e77b-4e5b-a39f-8bf47686bc5d) <p>
 Customers in the "Less than $40K" income category make up the largest share of the dataset and exhibit the highest attrition rate. This suggests a potential relationship between lower income levels and a higher likelihood of churn.
@@ -42,5 +42,10 @@ def __init__(self, input_size):
 ```  
 
 The network will consist of Linear and ReLU layers for the classification tasks, with a Dropout layer for regularization to reduce overfitting. A Sigmoid layer is not necessary as we will use the BCEWithLogitsLoss loss function in the main loop; the optimizer used is Adam. After fine-tuning, a combination of a learning rate of 0.001 and a weight decay of 0.001 yields the highest and most stable training results. After running for 200 epochs, the accuracy achieved is 93.34%.
+
+Given this model, banks can apply it to:
+- Identify customer segments with high attrition risk and proactively target them with personalized retention strategies.
+- Analyze loyal customer segments to discover key drivers of retention, which can inform loyalty programs and targeted offerings.
+- Prioritize marketing and resource allocation by estimating the potential return on investment (ROI) from retaining different customer groups.
 
 
