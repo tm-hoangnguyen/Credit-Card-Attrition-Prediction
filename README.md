@@ -1,4 +1,4 @@
-# Credit-Card-Attrition-Prediction-(Accuracy-94%)
+# Credit-Card-Attrition-Prediction-(Accuracy-93%)
 
 Kaggle provides data for analyzing and predicting customer behavior, including credit card usage and churn. We will use PyTorch to implement a neural network to identify customers at risk of leaving.
 
