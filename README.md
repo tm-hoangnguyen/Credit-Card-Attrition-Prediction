@@ -22,7 +22,7 @@ The dataset has an imbalanced attrition rate, with existing customers accounting
 ![image](https://github.com/user-attachments/assets/171002df-8236-4e53-8747-29f9efb320e1) <p>
 Attrited customers tend to have lower total transaction counts compared to existing customers. The median transaction count for attrited customers is lower (41 vs 72), and their overall range of transaction counts is narrower compared to existing customers, indicating that lower engagement may be a strong predictor of attrition. <p>
 
-![image](https://github.com/user-attachments/assets/25f6d710-e77b-4e5b-a39f-8bf47686bc5d) <p>
+![image](https://github.com/user-attachments/assets/a36f378b-9bf5-4ad8-a03f-aa977bcdbfa8)<p>
 Customers in the "Less than $40K" income category make up the largest share of the dataset and exhibit the highest attrition rate. This suggests a potential relationship between lower income levels and a higher likelihood of churn.
 
 ## Neural Network Model Training
