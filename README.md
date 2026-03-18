@@ -1,4 +1,4 @@
-# Credit-Card-Attrition-Prediction-(Accuracy-93%)
+# Credit-Card-Attrition-Prediction-(PR-AUC = 0.8960)
 
 Kaggle provides data for analyzing and predicting customer behavior, including credit card usage and churn. We will use PyTorch to implement a neural network to identify customers at risk of leaving.
 
@@ -41,7 +41,11 @@ def __init__(self, input_size):
     self.output = nn.Linear(16, 1)
 ```  
 
-The network will consist of Linear and ReLU layers for the classification tasks, with a Dropout layer for regularization to reduce overfitting. A Sigmoid layer is not necessary as we will use the BCEWithLogitsLoss loss function in the main loop; the optimizer used is Adam. After fine-tuning, a combination of a learning rate of 0.001 and a weight decay of 0.001 yields the highest and most stable training results. After running for 200 epochs, the accuracy achieved is 93.34%.
+The network will consist of Linear and ReLU layers for the classification tasks, with a Dropout layer for regularization to reduce overfitting. A Sigmoid layer is not necessary as we will use the BCEWithLogitsLoss loss function in the main loop; the optimizer used is Adam. After fine-tuning, a combination of a learning rate of 0.001 and a weight decay of 0.001 yields the highest and most stable training results.
+
+After training for 200 epochs, the model achieved a PR-AUC of 0.8960, demonstrating strong performance in identifying churners under class imbalance.
+
+![alt text](image.png)
 
 Given this model, banks can apply it to:
 - Identify customer segments with high attrition risk and proactively target them with personalized retention strategies.
