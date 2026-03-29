@@ -1,4 +1,4 @@
-# Credit-Card-Attrition-Prediction-(PR-AUC = 0.8960)
+# Credit-Card-Attrition-Prediction-(PR-AUC = 0.9698)
 
 Kaggle provides customer-level credit card usage data for predicting churn. In attrition_prediction.ipynb we load the BankChurners dataset, explore attrition drivers, and train a sequence of models - Logistic Regression, CatBoost, and a PyTorch neural network—to flag customers most at risk of leaving.
 
@@ -68,7 +68,7 @@ stats["woe"] = np.log(stats["dist_non_attrited"] / stats["dist_attrited"])
 stats["iv"] = (stats["dist_non_attrited"] - stats["dist_attrited"]) * stats["woe"]
 ```
 
-The resulting IV scores indicate which predictors contribute most to attrition discrimination. Top signals include Total_Trans_Ct (1.97), Total_Trans_Amt (1.93), Total_Revolving_Bal (1.08), Total_Ct_Chng_Q4_Q1 (0.96), and Avg_Utilization_Ratio (0.62). Features with IV below 0.1 are dropped, and the remaining WOE-transformed columns feed a second Logistic Regression model.
+The resulting IV scores indicate which predictors contribute most to attrition discrimination. Top signals include **Total_Trans_Ct (1.97), Total_Trans_Amt (1.93), Total_Revolving_Bal (1.08), Total_Ct_Chng_Q4_Q1 (0.96), and Avg_Utilization_Ratio (0.62)**. Features with IV below 0.1 are dropped, and the remaining WOE-transformed columns feed a second Logistic Regression model.
 
 **Performance**
 - PR-AUC: 0.8008
