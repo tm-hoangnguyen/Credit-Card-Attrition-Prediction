@@ -1,6 +1,6 @@
 # Credit-Card-Attrition-Prediction-(PR-AUC = 0.8960)
 
-Kaggle provides data for analyzing and predicting customer behavior, including credit card usage and churn. We will use PyTorch to implement a neural network to identify customers at risk of leaving.
+Kaggle provides customer-level credit card usage data for predicting churn. In attrition_prediction.ipynb we load the BankChurners dataset, explore attrition drivers, and train a sequence of models—from interpretable Logistic Regression baselines to a PyTorch neural network—to flag customers most at risk of leaving.
 
 Source: [https://www.kaggle.com/datasets/thedevastator/predicting-credit-card-customer-attrition-with-m/data](url)
 
@@ -8,7 +8,7 @@ Source: [https://www.kaggle.com/datasets/thedevastator/predicting-credit-card-cu
 
 ## Introduction
 
-The notebook includes various exploratory data analyses (EDA) to examine relationships among factors such as Income Category, Number of Transactions, Average Utilization Ratio, Educational Level, etc. The data is then processed for ingestion into PyTorch to build a binary classification model. Details of the neural network and its implementation are documented in the notebook.
+The notebook walks through the full churn-modeling pipeline: ingest the Kaggle dataset with kagglehub, inspect schema details, and run exploratory views on income tiers, transaction volume, utilization, and inactivity to quantify the 84/16 imbalance. Those findings guide a set of interpretable baselines (standard Logistic Regression and one with Weight-of-Evidence), followed by a PyTorch multilayer perceptron trained with BCEWithLogitsLoss and Adam. Each stage logs PR-AUC, ROC-AUC, and F1 so that readers can compare the trade-offs between interpretability and lift.
 
 ## Dependencies
 
@@ -24,6 +24,58 @@ Attrited customers tend to have lower total transaction counts compared to exist
 
 ![image](https://github.com/user-attachments/assets/a36f378b-9bf5-4ad8-a03f-aa977bcdbfa8)<p>
 Customers in the "Less than $40K" income category make up the largest share of the dataset and exhibit the highest attrition rate. This suggests a potential relationship between lower income levels and a higher likelihood of churn.
+
+## Logistic Regression Baseline
+To provide an interpretable reference point, the first experiment fits a class-balanced Logistic Regression model directly on the processed tabular features. The coefficients from this model highlight which behaviors (e.g., low transaction counts or lower income brackets) correlate most strongly with attrition risk.
+
+```python
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import auc, precision_recall_curve, roc_auc_score, f1_score
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y,
+)
+
+logreg = LogisticRegression(max_iter=1000, random_state=42, class_weight="balanced")
+logreg.fit(X_train, y_train)
+
+y_pred = logreg.predict(X_test)
+y_pred_proba = logreg.predict_proba(X_test)[:, 1]
+
+precision, recall, _ = precision_recall_curve(y_test, y_pred_proba)
+pr_auc = auc(recall, precision)
+roc_auc = roc_auc_score(y_test, y_pred_proba)
+f1 = f1_score(y_test, y_pred)
+```
+
+This setup counters the 84/16 class imbalance, reports threshold-independent metrics (PR-AUC), and yields a transparent baseline to compare against the neural-network improvements.
+
+The results are as follows:
+* PR-AUC: 0.7287
+* ROC-AUC: 0.9162
+* F1 Score: 0.6370
+
+## Logistic Regression with Weight of Evidence (WOE)
+To highlight monotonic relationships between features and the binary target, the next experiment replaces raw inputs with Weight of Evidence encodings. Attrited customers are treated as events ($y=1$) while existing customers are non-events ($y=0$). For each binned feature we compute WOE and Information Value (IV):
+
+```python
+stats["woe"] = np.log(stats["dist_non_attrited"] / stats["dist_attrited"])
+stats["iv"] = (stats["dist_non_attrited"] - stats["dist_attrited"]) * stats["woe"]
+```
+
+The resulting IV scores indicate which predictors contribute most to attrition discrimination. Top signals include Total_Trans_Ct (1.97), Total_Trans_Amt (1.93), Total_Revolving_Bal (1.08), Total_Ct_Chng_Q4_Q1 (0.96), and Avg_Utilization_Ratio (0.62). Features with IV below 0.1 are dropped, and the remaining WOE-transformed columns feed a second Logistic Regression model.
+
+**Performance**
+- PR-AUC: 0.8008
+- ROC-AUC: 0.9354
+- F1 Score: 0.6792
+
+The WOE representation sharpens separation between churners and loyal customers, lifting all metrics relative to the raw-feature baseline while keeping the model coefficients easy to interpret.
 
 ## Neural Network Model Training
 
@@ -47,7 +99,7 @@ After training for 200 epochs, the model achieved a PR-AUC of 0.8960, demonstrat
 
 ![alt text](image.png)
 
-Given this model, banks can apply it to:
+This model can be applied to:
 - Identify customer segments with high attrition risk and proactively target them with personalized retention strategies.
 - Analyze loyal customer segments to discover key drivers of retention, which can inform loyalty programs and targeted offerings.
 - Prioritize marketing and resource allocation by estimating the potential return on investment (ROI) from retaining different customer groups.
