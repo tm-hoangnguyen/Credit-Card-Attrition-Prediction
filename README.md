@@ -1,6 +1,6 @@
 # Credit-Card-Attrition-Prediction-(PR-AUC = 0.8960)
 
-Kaggle provides customer-level credit card usage data for predicting churn. In attrition_prediction.ipynb we load the BankChurners dataset, explore attrition drivers, and train a sequence of models—from interpretable Logistic Regression baselines to a PyTorch neural network—to flag customers most at risk of leaving.
+Kaggle provides customer-level credit card usage data for predicting churn. In attrition_prediction.ipynb we load the BankChurners dataset, explore attrition drivers, and train a sequence of models - Logistic Regression, CatBoost, and a PyTorch neural network—to flag customers most at risk of leaving.
 
 Source: [https://www.kaggle.com/datasets/thedevastator/predicting-credit-card-customer-attrition-with-m/data](url)
 
@@ -8,7 +8,7 @@ Source: [https://www.kaggle.com/datasets/thedevastator/predicting-credit-card-cu
 
 ## Introduction
 
-The notebook walks through the full churn-modeling pipeline: ingest the Kaggle dataset with kagglehub, inspect schema details, and run exploratory views on income tiers, transaction volume, utilization, and inactivity to quantify the 84/16 imbalance. Those findings guide a set of interpretable baselines (standard Logistic Regression and one with Weight-of-Evidence), followed by a PyTorch multilayer perceptron trained with BCEWithLogitsLoss and Adam. Each stage logs PR-AUC, ROC-AUC, and F1 so that readers can compare the trade-offs between interpretability and lift.
+The notebook walks through the full churn-modeling pipeline: ingest the Kaggle dataset with kagglehub, inspect schema details, and run exploratory views on income tiers, transaction volume, utilization, and inactivity to quantify the 84/16 imbalance. Those findings guide a set of interpretable baselines (standard Logistic Regression and one with Weight-of-Evidence), followed by CatBoost, and a PyTorch multilayer perceptron trained with BCEWithLogitsLoss and Adam. Each stage logs PR-AUC, ROC-AUC, and F1 so that readers can compare the trade-offs between interpretability and lift.
 
 ## Dependencies
 
@@ -77,6 +77,46 @@ The resulting IV scores indicate which predictors contribute most to attrition d
 
 The WOE representation sharpens separation between churners and loyal customers, lifting all metrics relative to the raw-feature baseline while keeping the model coefficients easy to interpret.
 
+## CatBoost
+CatBoost is a gradient boosting library that natively understands categorical features and is widely used in credit analytics. Rather than one-hot encoding everything, we can simply list the categorical columns and let the algorithm apply target statistics and ordered boosting under the hood.
+
+```python
+# split data
+X_train, X_test, y_train, y_test = train_test_split(
+    df_catboost.drop('Attrition_Flag', axis=1),
+    df_catboost['Attrition_Flag'],
+    test_size=0.2,
+    random_state=42,
+    stratify=df_catboost['Attrition_Flag']
+)
+
+cat_vars = X_train.select_dtypes(include=['str']).columns.tolist()
+
+catboost_model = CatBoostClassifier(
+    iterations=1000,
+    learning_rate=0.05,
+    depth=6,
+    random_seed=42,
+    verbose=100
+)
+
+catboost_model.fit(
+    X_train,
+    y_train,
+    eval_set=(X_test, y_test),
+    early_stopping_rounds=50,
+    cat_features=cat_vars
+)
+
+y_pred_catboost = catboost_model.predict(X_test)
+y_pred_proba_catboost = catboost_model.predict_proba(X_test)[:, 1]
+```
+Training loss keeps dropping, but the validation set stops improving after roughly 500 iterations, so the overfitting detector rewinds to the best checkpoint (around iteration 480). Even with that guardrail, CatBoost still outperforms both logistic baselines:
+
+- CatBoost PR-AUC: 0.9698
+- CatBoost ROC-AUC: 0.9933
+- CatBoost F1 Score: 0.9100
+
 ## Neural Network Model Training
 
 First, we need to one-hot encode categorical variables before feeding them into the ML model. Since the dataset is fairly simple, we can build a 3 layer neural network. <p>
@@ -99,7 +139,8 @@ After training for 200 epochs, the model achieved a PR-AUC of 0.8960, demonstrat
 
 ![alt text](image.png)
 
-This model can be applied to:
+-----
+These models can be applied to:
 - Identify customer segments with high attrition risk and proactively target them with personalized retention strategies.
 - Analyze loyal customer segments to discover key drivers of retention, which can inform loyalty programs and targeted offerings.
 - Prioritize marketing and resource allocation by estimating the potential return on investment (ROI) from retaining different customer groups.
